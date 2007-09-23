@@ -1,0 +1,18 @@
+INSTALLATION
+============
+
+Juomapeli requires following programs/stuff to work:
+
+	aplay (alsa sample player)
+	poissonrun - http://zakalwe.fi/~shd/foss/poissonrun/
+	Python interpreter
+
+	Something to drink...
+
+USAGE EXAMPLE
+=============
+
+Two players, drink once every ten seconds in average (may happen more often
+since this is a poisson random process):
+
+$ juomapeli.sh 10 "kirk johnson" "bob goatse"
