@@ -1,0 +1,190 @@
+#!/usr/bin/env python
+
+import os
+import random
+import sys
+import time
+
+
+def error_exit(msg):
+    sys.stderr.write(msg)
+    sys.exit(1)
+
+
+def random_drinker(drinking_weights, drinkers):
+    s = 0.0
+    r = random.random()
+    i = 0
+    drinker = None
+
+    for i in xrange(len(drinking_weights)):
+        s += drinking_weights[i]
+        if s >= r:
+            drinker = drinkers[i]
+            break
+
+    if drinker == None:
+        drinker = drinkers[-1]
+
+    return drinker
+
+
+def game():
+    global drinking_weights
+    global drinkers
+    global drinking_interval
+    global all_interval
+    global drinks_per_round
+
+    counter = 0
+
+    drinks = {}
+
+    while True:
+        if random.random() < 1 / drinking_interval:
+
+            if all_interval != None and random.random() < 1 / all_interval:
+                winners = ['Everyone']
+
+                for drinker in drinkers:
+                    amount = drinks.get(drinker, 0)
+                    drinks[drinker] = amount + 1
+
+            else:
+                winners = []
+                for i in xrange(drinks_per_round):
+                    drinker = random_drinker(drinking_weights, drinkers)
+                    winners.append(drinker)
+                    amount = drinks.get(drinker, 0)
+                    drinks[drinker] = amount + 1
+
+            # Print winners of the round
+            if len(winners) == 1:
+                sys.stdout.write('%s drinks\n' %(winners[0]))
+            else:
+                i = 0
+                for winner in winners:
+                    if i == (len(winners) - 1):
+                        sys.stdout.write('and %s ' %(winner))
+                    elif i == (len(winners) - 2):
+                        sys.stdout.write('%s ' %(winner))
+                    else:
+                        sys.stdout.write('%s, ' %(winner))
+                    i += 1
+                sys.stdout.write('drink\n')
+
+        time.sleep(1.0)
+        counter += 1
+
+    return (counter, drinks)
+
+
+all_interval = None
+drinking_interval = None
+drinkers = []
+drinking_weights = []
+drinks_per_round = 1
+
+
+i = 1
+while i < len(sys.argv):
+    arg = sys.argv[i]
+
+    next = None
+    if (i + 1) < len(sys.argv):
+        next = sys.argv[i + 1]
+
+    if arg[0] != '-':
+        break
+
+    if arg == '--all':
+        try:
+            all_interval = float(next)
+        except:
+            all_interval = 0.0
+
+        if all_interval <= 1.0:
+            error_exit('ALL interval must be a value larger than 1.0 seconds\n')
+        i += 2
+        continue
+
+    # The number of drinks per round
+    if arg == '--drinks':
+        try:
+            drinks_per_round = int(next)
+        except:
+            drinks_per_round = 0
+
+        if drinks_per_round <= 0:
+            error('Drinks must be an integer value larger than zero\n')
+
+        i += 2
+        continue
+
+
+    sys.stderr.write('Unknown option %s\n' %(arg))
+    sys.exit(1)
+
+if i >= len(sys.argv):
+    error_exit('Please provide the drinking time interval (seconds)\n')
+
+try:
+    drinking_interval = float(sys.argv[i])
+except:
+    drinking_interval = 0.0
+
+if drinking_interval <= 0.0:
+    error_exit('Please provide a positive value as the drinking interval\n')
+    
+i += 1
+
+while i < len(sys.argv):
+    drinker = sys.argv[i]
+    fields = drinker.split(':')
+
+    if len(fields) > 2:
+        error_exit('Proper drinker syntax is NAME or NAME:WEIGHT\n')
+
+    name = fields[0]
+
+    weight = 1.0
+    if len(fields) == 2:
+        try:
+            weight = float(fields[1])
+        except:
+            weight = 0.0
+
+        if weight <= 0.0:
+            error_exit('Drinker weight %s should be a positive value' %(fields[1]))
+
+    drinkers.append(name)
+    drinking_weights.append(weight)
+
+    i += 1
+
+if len(drinkers) == 0:
+    error_exit('Please give names of one or more drinkers\n')
+
+# Calculate probability mass for drinkers, including everyone
+pmass = sum(drinking_weights)
+
+if all_interval != None:
+    all_weight = pmass / (all_interval - 1.0)
+    pmass += all_weight
+
+drinking_weights = map(lambda x: x / pmass, drinking_weights)
+
+try:
+    (counter, drinks) = game()
+except KeyboardInterrupt:
+    pass
+
+sys.stdout.write('\n\n\nThe game lasted %d rounds...\n\n' %(counter))
+
+drinkers.sort()
+for drinker in drinkers:
+    amount = drinks.get(drinker, 0)
+    if amount == 0:
+        sys.stdout.write('%s is a loser\n' %(drinker))
+    else:
+        sys.stdout.write('%s drank %d times\n' %(drinker, amount))
