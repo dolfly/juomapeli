@@ -29,6 +29,13 @@ def random_drinker(drinking_weights, drinkers):
     return drinker
 
 
+def play_sample():
+    global sample_file
+
+    if sample_file != None:
+        os.system('aplay "%s" 2>/dev/null' %(sample_file))
+
+
 def game():
     global drinking_weights
     global drinkers
@@ -96,6 +103,8 @@ def game():
                     i += 1
                 sys.stdout.write('drink\n')
 
+            play_sample()
+
         time.sleep(1.0)
 
 
@@ -108,14 +117,19 @@ def usage():
     write('\n')
     write(' juomapeli [--all p] [--drinks n] interval drinker1 drinker2 ...\n')
     write('\n')
+    write('The (drinking) interval is given in seconds.\n')
+    write('\n')
     write('Options:\n')
     write('\n')
     write('--all p     Specify probability p that everyone drinks on the same round\n')
     write('--drinks n  Specify number of drinks per round\n')
     write('--moderate  If --drinks was used, this option denies drinker getting 2 drinks\n')
     write('            on the same round\n')
+    write('--no-sound  No sound\n')
+    write('--sample f.wav  Use f.wav as the drinking sample\n')
     write('\n')
-    write('Example:\n')
+    write('Example: One person drinks once in 5 seconds on average. Everyone drinks once\n')
+    write('         in 60 seconds on average\n')
     write('\n')
     write(' juomapeli --all 60 5 arto heikki joonas jouni markku tomas\n')
     write('\n')
@@ -127,6 +141,7 @@ drinkers = []
 drinking_weights = []
 drinks_per_round = 1
 moderate_drinking = False
+sample_file = 'yksi_kekkonen.wav'
 
 counter = 0
 drinks = {}
@@ -170,7 +185,7 @@ while i < len(sys.argv):
             drinks_per_round = 0
 
         if drinks_per_round <= 0:
-            error('Drinks must be an integer value larger than zero\n')
+            error_exit('Drinks must be an integer value larger than zero\n')
 
         i += 2
         continue
@@ -178,6 +193,27 @@ while i < len(sys.argv):
     if arg == '--moderate':
         moderate_drinking = True
         i += 1
+        continue
+
+    if arg == '--no-sound':
+        sample_file = None
+        i += 1
+        continue
+
+    if arg == '--sample':
+        if next == None:
+            error_exit('Please provide a sample file\n')
+
+        try:
+            f = open(next)
+        except:
+            error_exit('Unable to open sample file %s\n' %(next))
+
+        f.close()
+
+        sample_file = next
+
+        i += 2
         continue
 
     sys.stderr.write('Unknown option %s\n' %(arg))
