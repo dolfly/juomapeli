@@ -35,15 +35,30 @@ def game():
     global drinking_interval
     global all_interval
     global drinks_per_round
+    global moderate_drinking
+
+    global drinks
+    global counter
 
     counter = 0
 
-    drinks = {}
-
     while True:
-        if random.random() < 1 / drinking_interval:
 
-            if all_interval != None and random.random() < 1 / all_interval:
+        drink = False
+        everyone = False
+
+        if random.random() < 1 / drinking_interval:
+            drink = True
+        
+        if all_interval != None and random.random() < 1 / all_interval:
+            drink = True
+            everyone = True
+
+        if drink:
+
+            counter += 1
+
+            if everyone:
                 winners = ['Everyone']
 
                 for drinker in drinkers:
@@ -52,11 +67,19 @@ def game():
 
             else:
                 winners = []
-                for i in xrange(drinks_per_round):
+
+                i = 0
+                while i < drinks_per_round:
                     drinker = random_drinker(drinking_weights, drinkers)
+
+                    if moderate_drinking and drinker in winners:
+                        continue
+
                     winners.append(drinker)
                     amount = drinks.get(drinker, 0)
                     drinks[drinker] = amount + 1
+
+                    i += 1
 
             # Print winners of the round
             if len(winners) == 1:
@@ -74,9 +97,28 @@ def game():
                 sys.stdout.write('drink\n')
 
         time.sleep(1.0)
-        counter += 1
 
-    return (counter, drinks)
+
+def usage():
+
+    def write(msg):
+        sys.stdout.write(msg)
+
+    write('Juomapeli usage:\n')
+    write('\n')
+    write(' juomapeli [--all p] [--drinks n] interval drinker1 drinker2 ...\n')
+    write('\n')
+    write('Options:\n')
+    write('\n')
+    write('--all p     Specify probability p that everyone drinks on the same round\n')
+    write('--drinks n  Specify number of drinks per round\n')
+    write('--moderate  If --drinks was used, this option denies drinker getting 2 drinks\n')
+    write('            on the same round\n')
+    write('\n')
+    write('Example:\n')
+    write('\n')
+    write(' juomapeli --all 60 5 arto heikki joonas jouni markku tomas\n')
+    write('\n')
 
 
 all_interval = None
@@ -84,7 +126,15 @@ drinking_interval = None
 drinkers = []
 drinking_weights = []
 drinks_per_round = 1
+moderate_drinking = False
 
+counter = 0
+drinks = {}
+
+
+if len(sys.argv) == 1:
+    usage()
+    sys.exit(1)
 
 i = 1
 while i < len(sys.argv):
@@ -96,6 +146,10 @@ while i < len(sys.argv):
 
     if arg[0] != '-':
         break
+
+    if arg == '-h' or arg == '--help':
+        usage()
+        sys.exit(0)
 
     if arg == '--all':
         try:
@@ -121,6 +175,10 @@ while i < len(sys.argv):
         i += 2
         continue
 
+    if arg == '--moderate':
+        moderate_drinking = True
+        i += 1
+        continue
 
     sys.stderr.write('Unknown option %s\n' %(arg))
     sys.exit(1)
@@ -133,8 +191,8 @@ try:
 except:
     drinking_interval = 0.0
 
-if drinking_interval <= 0.0:
-    error_exit('Please provide a positive value as the drinking interval\n')
+if drinking_interval <= 1.0:
+    error_exit('Please provide a positive value greater than 1 as the drinking interval\n')
     
 i += 1
 
@@ -165,26 +223,38 @@ while i < len(sys.argv):
 if len(drinkers) == 0:
     error_exit('Please give names of one or more drinkers\n')
 
-# Calculate probability mass for drinkers, including everyone
+if moderate_drinking == True and len(drinkers) < drinks_per_round:
+    error_exit('Moderate drinking can only be used when the number of drinkers is at least as great as the number of drinks per round\n')
+
+# Calculate probability mass for drinkers
 pmass = sum(drinking_weights)
-
-if all_interval != None:
-    all_weight = pmass / (all_interval - 1.0)
-    pmass += all_weight
-
 drinking_weights = map(lambda x: x / pmass, drinking_weights)
 
 try:
-    (counter, drinks) = game()
+    game()
 except KeyboardInterrupt:
     pass
 
-sys.stdout.write('\n\n\nThe game lasted %d rounds...\n\n' %(counter))
+survivors = []
+
+for drinker in drinkers:
+    amount = drinks.get(drinker, 0)
+    if amount == 0:
+        survivors.append(amount)
+
+sys.stdout.write('\n\n\n')
+
+if len(survivors) == 0:
+    sys.stdout.write('Everyone passed out. ')
+
+sys.stdout.write('The game lasted only %d rounds...\n\n' %(counter))
 
 drinkers.sort()
 for drinker in drinkers:
     amount = drinks.get(drinker, 0)
     if amount == 0:
         sys.stdout.write('%s is a loser\n' %(drinker))
+    elif amount == 1:
+        sys.stdout.write('%s got only 1 sip\n' %(drinker))
     else:
         sys.stdout.write('%s drank %d times\n' %(drinker, amount))
