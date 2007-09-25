@@ -18,101 +18,99 @@ def error_exit(msg):
     sys.exit(1)
 
 
-def random_drinker(drinking_weights, drinkers):
-    s = 0.0
-    r = random.random()
-    i = 0
-    drinker = None
+class Juomapeli:
+    def __init__(self):
+        self.all_interval = None
+        self.drinking_interval = None
+        self.drinkers = []
+        self.drinking_weights = []
+        self.drinks_per_round = 1
+        self.moderate_drinking = False
+        self.sample_file = 'yksi_kekkonen.wav'
 
-    for i in xrange(len(drinking_weights)):
-        s += drinking_weights[i]
-        if s >= r:
-            drinker = drinkers[i]
-            break
+        self.counter = 0
+        self.drinks = {}
 
-    if drinker == None:
-        drinker = drinkers[-1]
+    def random_drinker(self):
+        s = 0.0
+        r = random.random()
+        drinker = None
 
-    return drinker
+        for i in xrange(len(self.drinking_weights)):
+            s += self.drinking_weights[i]
+            if s >= r:
+                drinker = self.drinkers[i]
+                break
+
+        if drinker == None:
+            drinker = self.drinkers[-1]
+
+        return drinker
 
 
-def play_sample():
-    global sample_file
-
-    if sample_file != None:
-        os.system('aplay "%s" 2>/dev/null' %(sample_file))
+    def play_sample(self):
+        if self.sample_file != None:
+            os.system('aplay "%s" 2>/dev/null' %(self.sample_file))
 
 
-def game():
-    global drinking_weights
-    global drinkers
-    global drinking_interval
-    global all_interval
-    global drinks_per_round
-    global moderate_drinking
+    def game(self):
+        self.counter = 0
 
-    global drinks
-    global counter
+        while True:
+            drink = False
+            everyone = False
 
-    counter = 0
-
-    while True:
-
-        drink = False
-        everyone = False
-
-        if random.random() < 1 / drinking_interval:
-            drink = True
+            if random.random() < 1 / self.drinking_interval:
+                drink = True
         
-        if all_interval != None and random.random() < 1 / all_interval:
-            drink = True
-            everyone = True
+            if self.all_interval != None and random.random() < 1 / self.all_interval:
+                drink = True
+                everyone = True
 
-        if drink:
+            if drink:
+                self.counter += 1
 
-            counter += 1
+                if everyone:
+                    winners = ['Everyone']
 
-            if everyone:
-                winners = ['Everyone']
+                    for drinker in self.drinkers:
+                        amount = self.drinks.get(drinker, 0)
+                        self.drinks[drinker] = amount + 1
 
-                for drinker in drinkers:
-                    amount = drinks.get(drinker, 0)
-                    drinks[drinker] = amount + 1
+                else:
+                    winners = []
 
-            else:
-                winners = []
+                    i = 0
+                    while i < self.drinks_per_round:
+                        drinker = self.random_drinker()
 
-                i = 0
-                while i < drinks_per_round:
-                    drinker = random_drinker(drinking_weights, drinkers)
+                        if self.moderate_drinking and drinker in winners:
+                            continue
 
-                    if moderate_drinking and drinker in winners:
-                        continue
+                        winners.append(drinker)
+                        amount = self.drinks.get(drinker, 0)
+                        self.drinks[drinker] = amount + 1
 
-                    winners.append(drinker)
-                    amount = drinks.get(drinker, 0)
-                    drinks[drinker] = amount + 1
+                        i += 1
 
-                    i += 1
+                # Print winners of the round
+                if len(winners) == 1:
+                    sys.stdout.write('%s drinks\n' %(winners[0]))
+                else:
+                    i = 0
+                    for winner in winners:
+                        if i == (len(winners) - 1):
+                            sys.stdout.write('and %s ' %(winner))
+                        elif i == (len(winners) - 2):
+                            sys.stdout.write('%s ' %(winner))
+                        else:
+                            sys.stdout.write('%s, ' %(winner))
+                        i += 1
+                    sys.stdout.write('drink\n')
 
-            # Print winners of the round
-            if len(winners) == 1:
-                sys.stdout.write('%s drinks\n' %(winners[0]))
-            else:
-                i = 0
-                for winner in winners:
-                    if i == (len(winners) - 1):
-                        sys.stdout.write('and %s ' %(winner))
-                    elif i == (len(winners) - 2):
-                        sys.stdout.write('%s ' %(winner))
-                    else:
-                        sys.stdout.write('%s, ' %(winner))
-                    i += 1
-                sys.stdout.write('drink\n')
+                self.play_sample()
 
-            play_sample()
-
-        time.sleep(1.0)
+            time.sleep(1.0)
 
 
 def usage():
@@ -153,17 +151,7 @@ def usage():
     write('\n')
 
 
-all_interval = None
-drinking_interval = None
-drinkers = []
-drinking_weights = []
-drinks_per_round = 1
-moderate_drinking = False
-sample_file = 'yksi_kekkonen.wav'
-
-counter = 0
-drinks = {}
-
+game = Juomapeli()
 
 if len(sys.argv) == 1:
     usage()
@@ -186,35 +174,36 @@ while i < len(sys.argv):
 
     if arg == '--all':
         try:
-            all_interval = float(next)
+            game.all_interval = float(next)
         except:
-            all_interval = 0.0
+            game.all_interval = 0.0
 
-        if all_interval <= 1.0:
+        if game.all_interval <= 1.0:
             error_exit('ALL interval must be a value larger than 1.0 seconds\n')
+
         i += 2
         continue
 
     # The number of drinks per round
     if arg == '--drinks':
         try:
-            drinks_per_round = int(next)
+            game.drinks_per_round = int(next)
         except:
-            drinks_per_round = 0
+            game.drinks_per_round = 0
 
-        if drinks_per_round <= 0:
+        if game.drinks_per_round <= 0:
             error_exit('Drinks must be an integer value larger than zero\n')
 
         i += 2
         continue
 
     if arg == '--moderate':
-        moderate_drinking = True
+        game.moderate_drinking = True
         i += 1
         continue
 
     if arg == '--no-sound':
-        sample_file = None
+        game.sample_file = None
         i += 1
         continue
 
@@ -229,7 +218,7 @@ while i < len(sys.argv):
 
         f.close()
 
-        sample_file = next
+        game.sample_file = next
 
         i += 2
         continue
@@ -241,13 +230,13 @@ if i >= len(sys.argv):
     error_exit('Please provide the drinking time interval (seconds)\n')
 
 try:
-    drinking_interval = float(sys.argv[i])
+    game.drinking_interval = float(sys.argv[i])
 except:
-    drinking_interval = 0.0
+    game.drinking_interval = 0.0
 
-if drinking_interval <= 1.0:
+if game.drinking_interval <= 1.0:
     error_exit('Please provide a positive value greater than 1 as the drinking interval\n')
-    
+
 i += 1
 
 while i < len(sys.argv):
@@ -269,30 +258,30 @@ while i < len(sys.argv):
         if weight <= 0.0:
             error_exit('Drinker weight %s should be a positive value' %(fields[1]))
 
-    drinkers.append(name)
-    drinking_weights.append(weight)
+    game.drinkers.append(name)
+    game.drinking_weights.append(weight)
 
     i += 1
 
-if len(drinkers) == 0:
+if len(game.drinkers) == 0:
     error_exit('Please give names of one or more drinkers\n')
 
-if moderate_drinking == True and len(drinkers) < drinks_per_round:
+if game.moderate_drinking == True and len(game.drinkers) < game.drinks_per_round:
     error_exit('Moderate drinking can only be used when the number of drinkers is at least as great as the number of drinks per round\n')
 
 # Calculate probability mass for drinkers
-pmass = sum(drinking_weights)
-drinking_weights = map(lambda x: x / pmass, drinking_weights)
+pmass = sum(game.drinking_weights)
+game.drinking_weights = map(lambda x: x / pmass, game.drinking_weights)
 
 try:
-    game()
+    game.game()
 except KeyboardInterrupt:
     pass
 
 survivors = []
 
-for drinker in drinkers:
-    amount = drinks.get(drinker, 0)
+for drinker in game.drinkers:
+    amount = game.drinks.get(drinker, 0)
     if amount == 0:
         survivors.append(amount)
 
@@ -301,11 +290,11 @@ sys.stdout.write('\n\n\n')
 if len(survivors) == 0:
     sys.stdout.write('Everyone passed out. ')
 
-sys.stdout.write('The game lasted only %d rounds...\n\n' %(counter))
+sys.stdout.write('The game lasted only %d rounds...\n\n' %(game.counter))
 
-drinkers.sort()
-for drinker in drinkers:
-    amount = drinks.get(drinker, 0)
+game.drinkers.sort()
+for drinker in game.drinkers:
+    amount = game.drinks.get(drinker, 0)
     if amount == 0:
         sys.stdout.write('%s is a loser\n' %(drinker))
     elif amount == 1:
