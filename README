@@ -1,3 +1,10 @@
+ABOUT JUOMAPELI
+===============
+
+Read the beginning of juomapeli script:
+
+$ less juomapeli
+
 INSTALLATION
 ============
 
@@ -11,7 +18,14 @@ Juomapeli requires following programs/stuff to work:
 USAGE EXAMPLE
 =============
 
-Two players, drink once every ten seconds in average (may happen more often
-since this is a poisson random process):
+Run ./juomapeli to see instructions.
 
-$ juomapeli 10 "kirk johnson" "bob goatse"
+TIPS
+====
+
+$ juomapeli 10 me myself I
+
+LINKS
+=====
+
+ * http://www.moderndrunkardmagazine.com/

@@ -1,4 +1,11 @@
 #!/usr/bin/env python
+# 
+# Juomapeli
+# 
+# Written by Heikki Orsila <heikki.orsila@iki.fi>
+# 
+# web site: http://zakalwe.fi/~shd/foss/juomapeli/
+# source repository: git-clone git://zakalwe.fi/juomapeli.git
 
 import os
 import random
@@ -113,13 +120,21 @@ def usage():
     def write(msg):
         sys.stdout.write(msg)
 
-    write('Juomapeli usage:\n')
+    write('Juomapeli written by Heikki Orsila <heikki.orsila@iki.fi>\n')
     write('\n')
-    write(' juomapeli [--all t] [--drinks n] interval drinker1 drinker2 ...\n')
+    write('SYNTAX:\n')
     write('\n')
-    write('The (drinking) interval is given in seconds.\n')
+    write('    juomapeli [--all t] [--drinks n] [--moderate] [--no-sound] [--sample f]\n')
+    write('              INTERVAL drinker1 drinker2 ...\n')
     write('\n')
-    write('Options:\n')
+    write('INTRODUCTION:\n')
+    write('\n')
+    write('Juomapeli is a drinking game. One must specify INTERVAL and one or more\n')
+    write('drinkers for the game. Drinking happens at random times, but in average, one\n')
+    write('drinking round in INTERVAL seconds. The number of drinks per round can be\n')
+    write('set by "--drinks n" option.\n')
+    write('\n')
+    write('OPTIONS:\n')
     write('\n')
     write('--all t     Everyone drinks on the same round every t seconds on average\n')
     write('--drinks n  Specify number of drinks per round\n')
@@ -128,7 +143,7 @@ def usage():
     write('--no-sound  No sound\n')
     write('--sample f.wav  Use f.wav as the drinking sample\n')
     write('\n')
-    write('Example: One person drinks once in 5 seconds on average. Everyone drinks once\n')
+    write('EXAMPLE: One person drinks once in 5 seconds on average. Everyone drinks once\n')
     write('         in 60 seconds on average\n')
     write('\n')
     write(' juomapeli --all 60 5 arto heikki joonas jouni markku tomas\n')
