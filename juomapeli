@@ -133,7 +133,7 @@ def usage():
     write('drinkers for the game. Drinking happens at random times, but in average, one\n')
     write('drinking round in INTERVAL seconds. The number of drinks per round can be\n')
     write('set by "--drinks n" option. One may specify special weights for drinkers\n')
-    write('if someone is either too sober or an experit in drinking. For example, one\n')
+    write('if someone is either too sober or an expert in drinking. For example, one\n')
     write('may specify bob and kirk:2 as drinkers, meaning that kirk gets twice as\n')
     write('many chances compared to bob.\n')
     write('\n')
