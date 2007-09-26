@@ -219,8 +219,7 @@ while i < len(sys.argv):
         i += 2
         continue
 
-    sys.stderr.write('Unknown option %s\n' %(arg))
-    sys.exit(1)
+    error_exit('Unknown option %s\n' % (arg))
 
 if i >= len(sys.argv):
     error_exit('Please provide the drinking time interval (seconds)\n')
