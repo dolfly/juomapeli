@@ -154,8 +154,8 @@ if len(sys.argv) == 1:
     sys.exit(1)
 
 
-shortopts = 'a:d:hmnbs:'
-longopts = ['help', 'all=', 'drinks=', 'moderate', 'no-sound', 'sample=']
+shortopts = 'a:d:hmns:'
+longopts = ['all=', 'drinks=', 'help', 'moderate', 'no-sound', 'sample=']
 try:
     opts, args = getopt.gnu_getopt(sys.argv[1:], shortopts, longopts)
 except getopt.GetoptError, e:
@@ -206,9 +206,6 @@ for opt, arg in opts:
         f.close()
 
         game.sample_file = arg
-
-    else:
-        error_exit('Unknown option %s\n' %(opt))
 
 
 if len(args) == 0:
