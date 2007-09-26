@@ -114,41 +114,37 @@ class Juomapeli:
 
 
 def usage():
+    sys.stdout.write("""Juomapeli written by Heikki Orsila <heikki.orsila@iki.fi>
+    
+SYNTAX:
 
-    def write(msg):
-        sys.stdout.write(msg)
+    juomapeli [--all t] [--drinks n] [--moderate] [--no-sound] [--sample f]
+              INTERVAL drinker1 drinker2 ...
 
-    write('Juomapeli written by Heikki Orsila <heikki.orsila@iki.fi>\n')
-    write('\n')
-    write('SYNTAX:\n')
-    write('\n')
-    write('    juomapeli [--all t] [--drinks n] [--moderate] [--no-sound] [--sample f]\n')
-    write('              INTERVAL drinker1 drinker2 ...\n')
-    write('\n')
-    write('INTRODUCTION:\n')
-    write('\n')
-    write('Juomapeli is a drinking game. One must specify INTERVAL and one or more\n')
-    write('drinkers for the game. Drinking happens at random times, but in average, one\n')
-    write('drinking round in INTERVAL seconds. The number of drinks per round can be\n')
-    write('set by "--drinks n" option. One may specify special weights for drinkers\n')
-    write('if someone is either too sober or an expert in drinking. For example, one\n')
-    write('may specify bob and kirk:2 as drinkers, meaning that kirk gets twice as\n')
-    write('many chances compared to bob.\n')
-    write('\n')
-    write('OPTIONS:\n')
-    write('\n')
-    write('--all t     Everyone drinks on the same round every t seconds on average\n')
-    write('--drinks n  Specify number of drinks per round\n')
-    write('--moderate  If --drinks was used, this option denies drinker getting 2 drinks\n')
-    write('            on the same round\n')
-    write('--no-sound  No sound\n')
-    write('--sample f.wav  Use f.wav as the drinking sample\n')
-    write('\n')
-    write('EXAMPLE: One person drinks once in 5 seconds on average. Everyone drinks once\n')
-    write('         in 60 seconds on average\n')
-    write('\n')
-    write(' juomapeli --all 60 5 arto heikki joonas jouni markku tomas\n')
-    write('\n')
+INTRODUCTION:
+
+Juomapeli is a drinking game. One must specify INTERVAL and one or more
+drinkers for the game. Drinking happens at random times, but in average, one
+drinking round in INTERVAL seconds. The number of drinks per round can be
+set by "--drinks n" option. One may specify special weights for drinkers
+if someone is either too sober or an expert in drinking. For example, one
+may specify bob and kirk:2 as drinkers, meaning that kirk gets twice as
+many chances compared to bob.
+
+OPTIONS:
+
+--all t     Everyone drinks on the same round every t seconds on average
+--drinks n  Specify number of drinks per round
+--moderate  If --drinks was used, this option denies drinker getting 2 drinks
+            on the same round
+--no-sound  No sound
+--sample f.wav  Use f.wav as the drinking sample
+
+EXAMPLE: One person drinks once in 5 seconds on average. Everyone drinks once
+         in 60 seconds on average
+
+ juomapeli --all 60 5 arto heikki joonas jouni markku tomas
+""")
 
 
 game = Juomapeli()
