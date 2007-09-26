@@ -11,7 +11,7 @@ import os
 import random
 import sys
 import time
-
+import getopt
 
 def error_exit(msg):
     sys.stderr.write(msg)
@@ -118,7 +118,7 @@ def usage():
     
 SYNTAX:
 
-    juomapeli [--all t] [--drinks n] [--moderate] [--no-sound] [--sample f]
+    juomapeli [--all=t] [--drinks=n] [--moderate] [--no-sound] [--sample=f]
               INTERVAL drinker1 drinker2 ...
 
 INTRODUCTION:
@@ -126,24 +126,24 @@ INTRODUCTION:
 Juomapeli is a drinking game. One must specify INTERVAL and one or more
 drinkers for the game. Drinking happens at random times, but in average, one
 drinking round in INTERVAL seconds. The number of drinks per round can be
-set by "--drinks n" option. One may specify special weights for drinkers
+set by "--drinks=n" option. One may specify special weights for drinkers
 if someone is either too sober or an expert in drinking. For example, one
 may specify bob and kirk:2 as drinkers, meaning that kirk gets twice as
 many chances compared to bob.
 
 OPTIONS:
 
---all t     Everyone drinks on the same round every t seconds on average
---drinks n  Specify number of drinks per round
---moderate  If --drinks was used, this option denies drinker getting 2 drinks
-            on the same round
---no-sound  No sound
---sample f.wav  Use f.wav as the drinking sample
+-a t, --all=t     Everyone drinks on the same round every t seconds on average
+-d n, --drinks=n  Specify number of drinks per round
+-m, --moderate    If --drinks was used, this option denies a drinker getting
+                  two drinks on the same round
+-n, --no-sound    No sound
+-s f, --sample=f  Use f (wav file) as the drinking sample
 
 EXAMPLE: One person drinks once in 5 seconds on average. Everyone drinks once
          in 60 seconds on average
 
- juomapeli --all 60 5 arto heikki joonas jouni markku tomas
+ juomapeli --all=60 5 arto heikki joonas jouni markku tomas
 """)
 
 
@@ -153,89 +153,76 @@ if len(sys.argv) == 1:
     usage()
     sys.exit(1)
 
-i = 1
-while i < len(sys.argv):
-    arg = sys.argv[i]
 
-    next = None
-    if (i + 1) < len(sys.argv):
-        next = sys.argv[i + 1]
+shortopts = 'a:d:hmnbs:'
+longopts = ['help', 'all=', 'drinks=', 'moderate', 'no-sound', 'sample=']
+try:
+    opts, args = getopt.gnu_getopt(sys.argv[1:], shortopts, longopts)
+except getopt.GetoptError, e:
+    error_exit(str(e) + '\n')
 
-    if arg[0] != '-':
-        break
 
-    if arg == '-h' or arg == '--help':
-        usage()
-        sys.exit(0)
-
-    if arg == '--all':
+for opt, arg in opts:
+    if opt == '-a' or opt == '--all':
         try:
-            game.all_interval = float(next)
+            game.all_interval = float(arg)
         except:
             game.all_interval = 0.0
 
         if game.all_interval <= 1.0:
             error_exit('ALL interval must be a value larger than 1.0 seconds\n')
 
-        i += 2
-        continue
-
     # The number of drinks per round
-    if arg == '--drinks':
+    elif opt == '-d' or opt == '--drinks':
         try:
-            game.drinks_per_round = int(next)
+            game.drinks_per_round = int(arg)
         except:
             game.drinks_per_round = 0
 
         if game.drinks_per_round <= 0:
             error_exit('Drinks must be an integer value larger than zero\n')
-
-        i += 2
         continue
 
-    if arg == '--moderate':
+    elif opt == '-h' or opt == '--help':
+        usage()
+        sys.exit(0)
+
+
+    elif opt == '-m' or opt == '--moderate':
         game.moderate_drinking = True
-        i += 1
-        continue
 
-    if arg == '--no-sound':
+    elif opt == '-n' or opt == '--no-sound':
         game.sample_file = None
-        i += 1
-        continue
 
-    if arg == '--sample':
-        if next == None:
+    elif opt == '-s' or opt == '--sample':
+        if arg == None:
             error_exit('Please provide a sample file\n')
 
         try:
-            f = open(next)
+            f = open(arg)
         except:
-            error_exit('Unable to open sample file %s\n' %(next))
+            error_exit('Unable to open sample file %s\n' %(arg))
 
         f.close()
 
-        game.sample_file = next
+        game.sample_file = arg
 
-        i += 2
-        continue
+    else:
+        error_exit('Unknown option %s\n' %(opt))
 
-    error_exit('Unknown option %s\n' % (arg))
 
-if i >= len(sys.argv):
+if len(args) == 0:
     error_exit('Please provide the drinking time interval (seconds)\n')
 
 try:
-    game.drinking_interval = float(sys.argv[i])
+    game.drinking_interval = float(args[0])
 except:
     game.drinking_interval = 0.0
 
 if game.drinking_interval <= 1.0:
     error_exit('Please provide a positive value greater than 1 as the drinking interval\n')
 
-i += 1
-
-while i < len(sys.argv):
-    drinker = sys.argv[i]
+for drinker in args[1:]:
     fields = drinker.split(':')
 
     if len(fields) > 2:
@@ -256,7 +243,6 @@ while i < len(sys.argv):
     game.drinkers.append(name)
     game.drinking_weights.append(weight)
 
-    i += 1
 
 if len(game.drinkers) == 0:
     error_exit('Please give names of one or more drinkers\n')
